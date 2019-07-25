@@ -12,17 +12,17 @@ func (self *PolyLine) TotalDistance() float64 {
 	if _len == 0 {
 		return 0
 	}
-	return self.Distance(_len)
+	return self.Distance(_len - 1)
 }
 
-//返回折线从起点到指定下标Idx的总长度
+//返回第idx个点(idx从0开始)距起点的距离之和
 func (self *PolyLine) Distance(idx int) float64 {
 	dist := 0.0
-	if idx > len(*self) {
+	if idx > len(*self)+1 {
 		panic("idx超出折线的长度")
 	}
-	for i := 1; i < idx; i++ {
-		dist += (*self)[i-1].Distance(&(*self)[i])
+	for i := 0; i < idx; i++ {
+		dist += (*self)[i].Distance(&(*self)[i+1])
 	}
 	return dist
 }
@@ -33,31 +33,26 @@ func (self *PolyLine) QueryPointAndDistance(pt *Point) (float64, int, float64, f
 		panic("polyLine至少包含2个点")
 	}
 	var (
-		minDistPoint  Point
-		distFromBegin float64
-		projectIdx    int
-		isOnRight     bool
+		minDistPoint  Point   //投影点即最短距离点
+		distFromBegin float64 //投影点距起点距离
+		segmentIdx    int     //线段下标(从0开始)
+		isOnRight     bool    //指定点在折线的右侧？
 	)
 	minDist := MaxValue
 	//遍历每个线段，求最小距离所在的线段
-	for i := 1; i < len(*self); i++ {
+	for i := 0; i < len(*self) - 1; i++ {
 		//点到线段的距离
-		dist := DistanceFromSegment(pt, &(*self)[i-1], &(*self)[i])
+		dist := DistanceFromSegment(pt, &(*self)[i], &(*self)[i+1])
 		if dist < minDist {
 			//最短距离被刷新
 			minDist = dist
-			projectIdx = i - 1
+			segmentIdx = i
 			//求投影点(最近点)
-			minDistPoint = ClosestPoint(pt, &(*self)[i-1], &(*self)[i])
+			minDistPoint = ClosestPoint(pt, &(*self)[i], &(*self)[i+1])
 		}
 	}
 	plLen := self.TotalDistance()
-	if projectIdx == 0 {
-		distFromBegin = minDist
-		isOnRight = IsOnRight(pt, &(*self)[0], &(*self)[1])
-	} else {
-		distFromBegin = self.Distance(projectIdx) + minDistPoint.Distance(&(*self)[projectIdx-1])
-		isOnRight = IsOnRight(pt, &(*self)[projectIdx-1], &(*self)[projectIdx])
-	}
-	return plLen, projectIdx, distFromBegin, minDist, minDistPoint, isOnRight
+	isOnRight = IsOnRight(pt, &(*self)[segmentIdx], &(*self)[segmentIdx+1])
+	distFromBegin = self.Distance(segmentIdx) +  minDistPoint.Distance(&(*self)[segmentIdx])
+	return plLen, segmentIdx, distFromBegin, minDist, minDistPoint, isOnRight
 }
