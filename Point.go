@@ -79,18 +79,18 @@ func ProjectionFactor(P, P0, P1 *Point) float64 {
 	return r
 }
 
-//点到线段最短距离的点
-func ClosestPoint(P, A, B *Point) Point {
+//点到线段最短距离的点,P靠A更近
+func ClosestPoint(P, A, B *Point) (Point,bool) {
 	factor := ProjectionFactor(P, A, B)
 	if factor > 0 && factor < 1 {
-		return ProjectPoint(P, A, B)
+		return ProjectPoint(P, A, B),P.Distance(A) < P.Distance(B)
 	}
 	dist0 := A.Distance(P)
 	dist1 := B.Distance(P)
 	if dist0 < dist1 {
-		return *A
+		return *A,true
 	} else {
-		return *B
+		return *B,false
 	}
 }
 
