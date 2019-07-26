@@ -9,6 +9,10 @@ type Point struct {
 	Y float64
 }
 
+func (a *Point) Equals(b *Point) bool {
+	return math.Abs(a.X-b.X) < 0.000001 && math.Abs(a.Y-b.Y) < 0.000001
+}
+
 //返回两点之间的距离
 func (a *Point) Distance(b *Point) float64 {
 	dx := a.X - b.X
@@ -80,17 +84,17 @@ func ProjectionFactor(P, P0, P1 *Point) float64 {
 }
 
 //点到线段最短距离的点,P靠A更近
-func ClosestPoint(P, A, B *Point) (Point,bool) {
+func ClosestPoint(P, A, B *Point) Point {
 	factor := ProjectionFactor(P, A, B)
 	if factor > 0 && factor < 1 {
-		return ProjectPoint(P, A, B),P.Distance(A) < P.Distance(B)
+		return ProjectPoint(P, A, B)
 	}
 	dist0 := A.Distance(P)
 	dist1 := B.Distance(P)
 	if dist0 < dist1 {
-		return *A,true
+		return *A
 	} else {
-		return *B,false
+		return *B
 	}
 }
 
