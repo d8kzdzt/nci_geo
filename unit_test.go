@@ -56,6 +56,20 @@ func TestCoordinateConvert(t *testing.T) {
 	fmt.Printf("投影坐标:%.5f\t%.5f\n", a, b)
 }
 
+//在折线中圈出指定范围内的所有点包含指定的起始点(投影点)
+func TestGetPointsInPolylineBySpecificRange(t *testing.T) {
+	var polyLine PolyLine
+	for i := 1; i < 100; i++ {
+		polyLine = append(polyLine, Point{float64(i), 0})
+	}
+	p1 := Point{3.9, 1}
+	p2 := Point{26, 0}
+	resPoints := GetPointsInPolylineBySpecificRange(&polyLine, p1, p2)
+	for i := 0; i < len(resPoints); i++ {
+		fmt.Printf("%v\t", resPoints[i])
+	}
+}
+
 func BenchmarkCoordinateConvert(bm *testing.B) {
 	x, y := 119.086825, 31.235314
 	var (
@@ -103,17 +117,4 @@ func BenchmarkCoordinateConvertNew(bm *testing.B) {
 		}
 	}
 	bm.Fatalf("性能测试错误,%v", err)
-}
-
-
-//坐标转换,
-func TestCoordinateConvertWrapper(t *testing.T) {
-	longitude, latitude := 119.086825, 31.235314
-	//生成一个坐标转换对象，内部自动初始化，自动解析了gps到平面坐标的转换逻辑
-	//调用者要保存conv对象，因为构造conv的消耗是巨大的，其内部包含了解析协议的细节
-	//conv对象可重复使用(调conv.Trans)
-	conv := new(CoordinateConverter)
-	//将longitude, latitude转为a,b表示的平面坐标,失败返回error对象
-	a,b,_ := conv.Trans(longitude, latitude)
-	fmt.Printf("%.5f\t%.5f\n",a,b)
 }
